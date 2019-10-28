@@ -1,17 +1,25 @@
 <script>
+    import {  onDestroy } from 'svelte'
     import { cardSelect } from './stores.js';
 
     export let type;
     export let id;
     export let position;
+    export let removeCard;
     export let selected = false;
 
     function slashStart(e) {
         console.log(1);
         
         cardSelect.addCard({ type, id, position })
+        window.addEventListener('mouseup', slashEnd);
         console.log($cardSelect);
         
+    }
+
+    function slashEnd(e) {
+        $cardSelect.forEach(card => removeCard(card.position.y, card.position.x));
+        cardSelect.reset();
     }
 
     function slashEnter(e) {
@@ -19,13 +27,17 @@
             cardSelect.addCard({ type, id, position })
         }
     }
+
+    onDestroy(() => {
+		window.removeEventListener('mouseup', slashEnd);
+    })
 </script>
 
 <div class="card"
     class:selected={selected}
     on:mousedown={slashStart}
-    on:touchstart={slashStart}
-    on:mouseenter={slashEnter}>
+    on:mouseenter={slashEnter}
+    on:touchstart={slashStart}>
     {type + id}
     {position.x}, {position.y}
 </div>

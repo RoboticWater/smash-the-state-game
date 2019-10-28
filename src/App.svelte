@@ -37,7 +37,16 @@
 	{#each grid as row, y}
 		<div class="row">
 			{#each row as card, x}
-				{#if card}<Card type={card.type} id={card.id} position={{x, y}} selected={$cardSelect.length > 0 && $cardSelect.find(c => c.id === card.id)} />{/if}
+				{#if card}
+					<Card 
+						type={card.type}
+						id={card.id}
+						position={{x, y}}
+						removeCard={removeCard}
+						selected={$cardSelect.length > 0 && $cardSelect.find(c => c.id === card.id)} />
+				{:else}
+					<div class="empty"></div>
+				{/if}
 			{/each}
 		</div>
 	{/each}
@@ -53,5 +62,9 @@
 	.row {
 		display: flex;
 		flex: 1;
+	}
+	.empty {
+		flex: 1;
+        margin: 2%;
 	}
 </style>
