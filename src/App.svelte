@@ -1,11 +1,13 @@
 <script>
-	import CardTypes from './CardTypes.js'
+    import { cardSelect } from './stores.js';
+	import cardTypes from './cardTypes.js'
 	import Card from './Card.svelte'
 
 	let id = 0;
 	function getCard() {
+		let keys = Object.keys(cardTypes);
 		return {
-			type: CardTypes.QUEEN,
+			type: cardTypes[keys[keys.length * Math.random() << 0]],
 			id: id++,
 		}
 	}
@@ -35,9 +37,7 @@
 	{#each grid as row, y}
 		<div class="row">
 			{#each row as card, x}
-				<div class="remove-wrapper" on:click={() => removeCard(y, x)}>
-					{#if card}<Card type={card.type} id={card.id} position={{x, y}} />{/if}
-				</div>
+				{#if card}<Card type={card.type} id={card.id} position={{x, y}} selected={$cardSelect.length > 0 && $cardSelect.find(c => c.id === card.id)} />{/if}
 			{/each}
 		</div>
 	{/each}
@@ -53,9 +53,5 @@
 	.row {
 		display: flex;
 		flex: 1;
-	}
-	.remove-wrapper {
-		flex: 1;
-		display: flex;
 	}
 </style>
