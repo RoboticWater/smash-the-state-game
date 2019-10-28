@@ -14,8 +14,12 @@
 	function makeGrid(row, col) {
 		return [...Array(row)].map(r => [...Array(col)].map(c => getCard()))
 	}
-	function removeCard(row, col) {
-		grid[row][col] = null;
+	function removeCard(cards) {
+		console.log(cards);
+		
+		cards.forEach(card => {
+			grid[card.position.y][card.position.x] = null;
+		})
 		handleGravity();
 	}
 	function handleGravity() {

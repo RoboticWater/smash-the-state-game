@@ -18,7 +18,7 @@
     }
 
     function slashEnd(e) {
-        $cardSelect.forEach(card => removeCard(card.position.y, card.position.x));
+        removeCard($cardSelect);
         cardSelect.reset();
     }
 
