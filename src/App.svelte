@@ -1,74 +1,89 @@
 <script>
-    import { cardSelect } from './stores.js';
-	import cardTypes from './cardTypes.js'
-	import Card from './Card.svelte'
+	import Test from './Test.svelte';
+	import { quintOut, bounceOut } from 'svelte/easing';
+	import { crossfade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	
+	const getCard = () => ({id: id++, suit: Math.random() > 0.5 ? 'h' : 'd', rank: Math.random() > 0.2 ? 'k' : 's'});
 
 	let id = 0;
-	function getCard() {
-		let keys = Object.keys(cardTypes);
-		return {
-			type: cardTypes[keys[keys.length * Math.random() << 0]],
-			id: id++,
+	let grid = [
+		[...Array(5)].map(i => getCard()), 
+		[...Array(5)].map(i => getCard()), 
+		[...Array(5)].map(i => getCard()), 
+		[...Array(5)].map(i => getCard()), 
+		[...Array(5)].map(i => getCard()), 
+	]
+
+	let removed = [null, null, null, null, null]
+
+	const [send, receive] = crossfade({
+		fallback(node, params) {
+			const style = getComputedStyle(node);
+			const transform = style.transform === 'none' ? '' : style.transform;
+
+			return {
+				duration: 600,
+				easing: quintOut,
+				css: t => `
+					transform: ${transform} scale(${t});
+					opacity: ${t}
+				`
+			};
 		}
+	});
+
+	function removeItem(col, id) {
+		let i = grid[col].findIndex(elem => elem.id === id);
+		removed[col] = i;
+		grid[col].splice(i, 1);
+		grid[col] = [...grid[col]]
 	}
-	function makeGrid(row, col) {
-		return [...Array(row)].map(r => [...Array(col)].map(c => getCard()))
-	}
-	function removeCard(cards) {
-		console.log(cards);
-		
-		cards.forEach(card => {
-			grid[card.position.y][card.position.x] = null;
-		})
-		handleGravity();
-	}
-	function handleGravity() {
-		console.log(grid);
-		
-		for (let i = grid.length - 1; i > 0; i--) {
-			for (let j = 0; j < grid[0].length; j++) {
-				if (!grid[i][j]) {
-					grid[i][j] = grid[i - 1][j];
-					grid[i - 1][j] = null; 
-				}
-			}
-		}
-	}
-	let grid = makeGrid(3, 3);
 </script>
 
-<div class="play-area">
-	{#each grid as row, y}
-		<div class="row">
-			{#each row as card, x}
-				{#if card}
-					<Card 
-						type={card.type}
-						id={card.id}
-						position={{x, y}}
-						removeCard={removeCard}
-						selected={$cardSelect.length > 0 && $cardSelect.find(c => c.id === card.id)} />
-				{:else}
-					<div class="empty"></div>
-				{/if}
-			{/each}
-		</div>
-	{/each}
+<div class="app">
+	<div class="top-bar">
+	</div>
+	<div class="play-area">
+		{#each grid as column, col}
+			<div class="column">
+				{#each column as test, i (test.id)}
+					<div 
+						class="container" 
+						on:click={() => removeItem(col, test.id)}
+						out:send="{{key: test.id}}"
+						animate:flip={{easing: bounceOut, duration: 500, delay: 30 * (removed[col] - i)}}
+					><Test {...test} /></div>
+				{/each}
+				</div>
+		{/each}
+	</div>
+	<div class="bottom-bar"></div>
 </div>
 
 <style>
+	.app {
+		display: grid;
+		grid-template-rows: 1fr auto 1fr;
+		height: 100%;
+		/* background: #222; */
+		background: #ddd;
+	}
 	.play-area {
 		display: flex;
-		flex-direction: column;
-		height: 100%;
-		width: 100%;
+		height: 500px;
+		width: 375px;
+		margin: 0 auto;
 	}
-	.row {
+	.column {
 		display: flex;
-		flex: 1;
+		flex-direction: column;
+		align-content: flex-end;
+		justify-content: flex-end;
+		height: 100%;
+		width: 75px;
 	}
-	.empty {
-		flex: 1;
-        margin: 2%;
+	.container {
+		display: inline-block;
 	}
 </style>
