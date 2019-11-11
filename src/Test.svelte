@@ -2,10 +2,11 @@
     export let id;
     export let suit;
     export let rank;
+    export let selected = false;
 </script>
 
-<div class="test" style={`background: ${rank === 's' ? suit === 'h' ? "#333" : "#f02a2a" : '#fff'}`}>
-    <div class="color" style={`background: ${suit === 'h' ? "#333" : "#f02a2a"}`}>{id}</div>
+<div class="test" class:selected={selected()} style={`background: ${rank === 's' ? suit === 'h' ? "#f13535" : "#404040" : '#fff'}`}>
+    <div class="color" style={`background: ${suit === 'h' ? "#f13535" : "#404040"}`}>{id}</div>
     <!-- <div class="color" style={`background: ${r > 0.5 ? "#ffda23" : "#2a58f0"}`}>{id}</div> -->
 </div>
 
@@ -21,12 +22,12 @@
         transition: box-shadow 0.25s ease, transform 0.25s ease;
         cursor: pointer;
     }
-    .test:hover {
+    .test.selected {
         transform: translate(-5px, -5px);
         box-shadow: 12px 12px 5px #2223;
     }
     .color {
-        background: #f02a2a;
+        background: #303030;
         height: 80%;
         clip-path: polygon(100% 0, 100% 50%, 0% 100%, 0 0);
         color: #fff;
