@@ -4,16 +4,62 @@
 	import { quintOut, bounceOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
+
+	function shuffle(a) {
+		var j, x, i;
+		for (i = a.length - 1; i > 0; i--) {
+			j = Math.floor(Math.random() * (i + 1));
+			x = a[i];
+			a[i] = a[j];
+			a[j] = x;
+		}
+		return a;
+	}
 	
-	const getCard = () => ({id: id++, suit: Math.random() > 0.5 ? 'h' : 'c', rank: Math.random() > 0.3 ? 'f' : 's'});
+	const Deck = () => ([
+		...[...Array(2)].map(i => Card(1, Suit.CLUBS, Type.SERF)),
+		...[...Array(2)].map(i => Card(2, Suit.CLUBS, Type.SERF)),
+		...[...Array(1)].map(i => Card(1, Suit.CLUBS, Type.SERF)),
+		...[...Array(1)].map(i => Card(1, Suit.CLUBS, Type.SERF)),
+		...[...Array(2)].map(i => Card(1, Suit.CLUBS, Type.FACE)),
+		...[...Array(2)].map(i => Card(2, Suit.CLUBS, Type.FACE)),
+		...[...Array(2)].map(i => Card(3, Suit.CLUBS, Type.FACE)),
+		...[...Array(2)].map(i => Card(4, Suit.CLUBS, Type.FACE)),
+		...[...Array(2)].map(i => Card(1, Suit.HEARTS, Type.SERF)),
+		...[...Array(2)].map(i => Card(2, Suit.HEARTS, Type.SERF)),
+		...[...Array(1)].map(i => Card(1, Suit.HEARTS, Type.SERF)),
+		...[...Array(1)].map(i => Card(1, Suit.HEARTS, Type.SERF)),
+		...[...Array(2)].map(i => Card(1, Suit.HEARTS, Type.FACE)),
+		...[...Array(2)].map(i => Card(2, Suit.HEARTS, Type.FACE)),
+		...[...Array(2)].map(i => Card(3, Suit.HEARTS, Type.FACE)),
+		...[...Array(2)].map(i => Card(4, Suit.HEARTS, Type.FACE)),
+	]);
+
+	
+
+	const Suit = {
+		CLUBS: 'clubs',
+		HEARTS: 'hearts',
+		DIAMONDS: 'diamonds',
+		SPADES: 'clubs',
+	}
+
+	const Type = {
+		SERF: 'serf',
+		FACE: 'face'
+	}
 
 	let id = 0;
+	const Card = (rank, suit, type) => ({id: id++, rank, suit, type})
+
+	// const getCard = () => ({id: id++, suit: Math.random() > 0.5 ? 'h' : 'c', rank: Math.random() > 0.3 ? 'f' : 's', size: 1 + (Math.random() * 4) << 0});
+	let deck = shuffle([...Array(5)].reduce((acc, cur) => acc.concat(Deck()), []))
 	let grid = [
-		[...Array(10)].map(i => getCard()), 
-		[...Array(10)].map(i => getCard()), 
-		[...Array(10)].map(i => getCard()), 
-		[...Array(10)].map(i => getCard()), 
-		[...Array(10)].map(i => getCard()), 
+		[...Array(10)].map(i => deck.pop()), 
+		[...Array(10)].map(i => deck.pop()), 
+		[...Array(10)].map(i => deck.pop()), 
+		[...Array(10)].map(i => deck.pop()), 
+		[...Array(10)].map(i => deck.pop()), 
 	]
 
 	let removed = [null, null, null, null, null]
@@ -39,7 +85,9 @@
 		let i = grid[col].findIndex(elem => elem.id === id);
 		// removed[col] = i;
 		grid[col].splice(i, 1);
-		grid[col] = [getCard(), ...grid[col]]
+		let card = deck.pop()
+		if (card)
+			grid[col] = [card, ...grid[col]]
 	}
 
 	function startSelect(e, col, row) {
@@ -59,16 +107,21 @@
 
 	function continueSelect(e, col, row) {
 		console.log();
-		
 		if ($cardSelect.length === 0 || !validNextCard(col, row))
 			return;
-		console.log("CONTINUE SELECT");
 		let card = grid[col][row];
+		let serfCount = $cardSelect.reduce((acc, cur) => acc + cur.type === Type.SERF ? 1 : 0, 0);
+		if (serfCount > 1 && card.type !== Type.SERF || serfCount === 1 && card.type === Type.SERF)
+			return;
+		console.log("CONTINUE SELECT");
+		
 		let i = $cardSelect.findIndex(c => c.id === card.id);
 		console.log(i >= 0 ? "	REMOVING CARD" : "	ADDING CARD");
 		if (i >= 0) {
 			cardSelect.removeCardIndex($cardSelect.length - 1);
 		} else {
+			if (card.suit !== $cardSelect[$cardSelect.length - 1].suit)
+				return;
 			cardSelect.addCard(Object.assign({col, row}, card))
 		}
 		// console.log($cardSelect);
@@ -80,15 +133,62 @@
 		console.log("ENDING SELECT");
 		// console.log($cardSelect);
 		console.log($cardSelect.reduce((acc, cur) => acc + cur.rank + cur.suit + " ", ""));
-		$cardSelect.forEach(card => {
-			removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
-			removedCount[card.col]++;
-		});
-		
-		$cardSelect.forEach(card => {
-			removeItem(card.col, card.id);
-		});
-		cardSelect.reset();
+		if ($cardSelect.length < 2) {
+			cardSelect.reset();
+			return;
+		}
+
+		if ($cardSelect.every(card => card.type === Type.SERF)) {
+			let serfVal = $cardSelect.reduce((acc, cur) => acc + cur.rank, 0);
+			let card = $cardSelect[$cardSelect.length - 1];
+			grid[card.col][card.row].rank = serfVal;
+			for (let i = 0; i < $cardSelect.length - 1; i++) {
+				card = $cardSelect[i];
+				removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
+				removedCount[card.col]++;
+			}
+			for (let i = 0; i < $cardSelect.length - 1; i++) {
+				card = $cardSelect[i];
+				removeItem(card.col, card.id);
+			}
+			cardSelect.reset();
+		} else {
+			let curSerf;
+			let serfs = []
+			let groups = $cardSelect.reduce((acc, cur) => {
+				if (cur.type === Type.SERF) {
+					curSerf = cur.id;
+					serfs.push(cur);
+					acc[curSerf] = []
+				} else {
+					acc[curSerf].push(cur)
+				}
+				return acc;
+			}, {})
+
+			let valid = true;
+			serfs.forEach(serf => {
+				if (groups[serf.id].length !== serf.rank || !groups[serf.id].every(card => card.suit === serf.suit)) {
+					valid = false;
+				}
+					
+			})
+
+			if (!valid) {
+				cardSelect.reset();
+				return;
+			}
+			
+			$cardSelect.forEach(card => {
+				removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
+				removedCount[card.col]++;
+			});
+			
+			$cardSelect.forEach(card => {
+				removeItem(card.col, card.id);
+			});
+			cardSelect.reset();
+		};
 	}
 
 	function validNextCard(col, row) {
@@ -118,7 +218,7 @@
 						></div>
 					</div>
 				{/each}
-				</div>
+			</div>
 		{/each}
 	</div>
 	<div class="bottom-bar"></div>

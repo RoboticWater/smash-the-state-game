@@ -2,11 +2,12 @@
     export let id;
     export let suit;
     export let rank;
+    export let type;
     export let selected = false;
 </script>
 
-<div class="test" class:selected={selected()} style={`background: ${rank === 's' ? suit === 'h' ? "#f13535" : "#404040" : '#fff'}`}>
-    <div class="color" style={`background: ${suit === 'h' ? "#f13535" : "#404040"}`}>{id}</div>
+<div class="test" class:selected={selected()} style={`background: ${type === 'serf' ? suit === 'hearts' ? "#f13535" : "#404040" : '#fff'}`}>
+    <div class="color" style={`background: ${suit === 'hearts' ? "#f13535" : "#404040"}`}>{type === 'serf' ? rank : ''}</div>
     <!-- <div class="color" style={`background: ${r > 0.5 ? "#ffda23" : "#2a58f0"}`}>{id}</div> -->
 </div>
 
