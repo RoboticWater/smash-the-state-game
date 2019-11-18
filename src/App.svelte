@@ -53,7 +53,7 @@
 	const Card = (rank, suit, type) => ({id: id++, rank, suit, type})
 
 	// const getCard = () => ({id: id++, suit: Math.random() > 0.5 ? 'h' : 'c', rank: Math.random() > 0.3 ? 'f' : 's', size: 1 + (Math.random() * 4) << 0});
-	let deck = shuffle([...Array(5)].reduce((acc, cur) => acc.concat(Deck()), []))
+	let deck = shuffle([...Array(2)].reduce((acc, cur) => acc.concat(Deck()), []))
 	let grid = [
 		[...Array(10)].map(i => deck.pop()), 
 		[...Array(10)].map(i => deck.pop()), 
@@ -88,11 +88,13 @@
 		let card = deck.pop()
 		if (card)
 			grid[col] = [card, ...grid[col]]
+		else
+			grid[col] = [{}, ...grid[col]]
 	}
 
 	function startSelect(e, col, row) {
 		let card = grid[col][row];
-		if (card.rank === 'f' && ($cardSelect.length === 0 || !validNextCard(col, row)))
+		if (card.type === Type.FACE  && ($cardSelect.length === 0 || !validNextCard(col, row)))
 			return;
 		console.log("START SELECT");
 		
@@ -211,7 +213,7 @@
 						class:hidden={row < 5}
 						animate:flip={{easing: bounceOut, duration: 300 + 200 * removedCount[col], delay: 30 * (removed[col] - row)}}
 					>
-						<Test selected={() => $cardSelect.some(card => card.id === test.id)} {...test}/>
+						<Test selected={() => $cardSelect.some(card => card.id === test.id)} {...test} coords={{x: col, y: row}}/>
 						<div class="select-zone"
 							on:mousedown={e => startSelect(e, col, row)}
 							on:mouseenter={e => continueSelect(e, col, row)}
