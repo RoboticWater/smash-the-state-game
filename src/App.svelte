@@ -1,9 +1,19 @@
 <script>
+    import { onMount } from 'svelte'
 	import { cardSelect } from './stores.js'
 	import Test from './Test.svelte';
 	import { quintOut, bounceOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
+
+
+    var audioSources = [];
+    onMount(() => {
+        audioSources.push(new Audio('./card.wav'));
+        audioSources.push(new Audio('./card.wav'));
+        audioSources.push(new Audio('./card.wav'));
+        audioSources.push(new Audio('./card.wav'));
+    })
 
 	function shuffle(a) {
 		var j, x, i;
@@ -81,6 +91,17 @@
 		}
 	});
 
+	function playEffect() {
+		let audioSource = audioSources.find(as => !as.paused);
+		if (!audioSource) {
+			audioSources.push(new Audio('./card.wav'));
+			audioSource = audioSources[audioSources.length -1]
+		}
+		audioSource.volume = 0.5 *  Math.random() + 0.5;
+		audioSource.playbackRate = 0.5 *  Math.random() + 0.5;
+		audioSource.play();
+	}
+
 	function removeItem(col, id) {
 		let i = grid[col].findIndex(elem => elem.id === id);
 		// removed[col] = i;
@@ -98,6 +119,8 @@
 			return;
 		console.log("START SELECT");
 		
+		playEffect()
+
 		cardSelect.addCard(Object.assign({col, row}, card))
 		// console.log($cardSelect);
 		// console.log($cardSelect.reduce((acc, cur) => acc + cur.rank + cur.suit + " ", ""));
@@ -124,6 +147,7 @@
 		} else {
 			if (card.suit !== $cardSelect[$cardSelect.length - 1].suit)
 				return;
+			playEffect()
 			cardSelect.addCard(Object.assign({col, row}, card))
 		}
 		// console.log($cardSelect);
