@@ -197,7 +197,6 @@
 				if (groups[serf.id].length !== serf.rank || !groups[serf.id].every(card => card.suit === serf.suit)) {
 					valid = false;
 				}
-					
 			})
 
 			if (!valid) {
