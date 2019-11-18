@@ -1,4 +1,6 @@
 <script>
+    import { spring } from 'svelte/motion';
+    
     export let id;
     export let suit;
     export let rank;
