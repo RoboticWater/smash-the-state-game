@@ -99,7 +99,7 @@
 		}
 		audioSource.volume = 0.5 *  Math.random() + 0.5;
 		audioSource.playbackRate = 0.5 *  Math.random() + 0.5;
-		audioSource.play();
+		// audioSource.play();
 	}
 
 	function removeItem(col, id) {
@@ -163,57 +163,48 @@
 			cardSelect.reset();
 			return;
 		}
-
-		if ($cardSelect.every(card => card.type === Type.SERF)) {
-			let serfVal = $cardSelect.reduce((acc, cur) => acc + cur.rank, 0);
-			let card = $cardSelect[$cardSelect.length - 1];
-			grid[card.col][card.row].rank = serfVal;
-			for (let i = 0; i < $cardSelect.length - 1; i++) {
-				card = $cardSelect[i];
-				removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
-				removedCount[card.col]++;
-			}
-			for (let i = 0; i < $cardSelect.length - 1; i++) {
-				card = $cardSelect[i];
-				removeItem(card.col, card.id);
-			}
-			cardSelect.reset();
-		} else {
-			let curSerf;
-			let serfs = []
-			let groups = $cardSelect.reduce((acc, cur) => {
-				if (cur.type === Type.SERF) {
-					curSerf = cur.id;
-					serfs.push(cur);
-					acc[curSerf] = []
-				} else {
-					acc[curSerf].push(cur)
-				}
-				return acc;
-			}, {})
-
-			let valid = true;
-			serfs.forEach(serf => {
-				if (!groups[serf.id].every(card => card.suit === serf.suit)) {
-					valid = false;
-				}
-			})
-
-			if (!valid) {
-				cardSelect.reset();
-				return;
-			}
-			
-			$cardSelect.forEach(card => {
-				removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
-				removedCount[card.col]++;
-			});
-			
+		
+		if ($cardSelect.reduce((acc, cur) => acc + (cur.type === Type.SERF ? cur.rank : -cur.rank), 0)) {
 			$cardSelect.forEach(card => {
 				removeItem(card.col, card.id);
 			});
-			cardSelect.reset();
-		};
+		}
+		cardSelect.reset();
+
+		// let curSerf;
+		// let serfs = []
+		// let groups = $cardSelect.reduce((acc, cur) => {
+		// 	if (cur.type === Type.SERF) {
+		// 		curSerf = cur.id;
+		// 		serfs.push(cur);
+		// 		acc[curSerf] = []
+		// 	} else {
+		// 		acc[curSerf].push(cur)
+		// 	}
+		// 	return acc;
+		// }, {})
+
+		// let valid = true;
+		// serfs.forEach(serf => {
+		// 	if (!groups[serf.id].every(card => card.suit === serf.suit)) {
+		// 		valid = false;
+		// 	}
+		// })
+
+		// if (!valid) {
+		// 	cardSelect.reset();
+		// 	return;
+		// }
+		
+		// $cardSelect.forEach(card => {
+		// 	removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
+		// 	removedCount[card.col]++;
+		// });
+		
+		// $cardSelect.forEach(card => {
+		// 	removeItem(card.col, card.id);
+		// });
+		// cardSelect.reset();
 	}
 
 	function validNextCard(col, row) {
