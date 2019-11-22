@@ -7,10 +7,11 @@
     export let type;
     export let coords;
     export let selected = false;
+    export let display = null;
 </script>
 
 <div class="test" class:selected={selected()} style={`background: ${type === 'serf' ? suit === 'hearts' ? "#f13535" : "#404040" : '#fff'}`}>
-    <div class="color" style={`background: ${suit === 'hearts' ? "#f13535" : "#404040"}`}>{rank}</div>
+    <div class="color" style={`background: ${suit === 'hearts' ? "#f13535" : "#404040"}`}>{(selected() && type === 'serf') ? display : rank}</div>
     <!-- <div>{coords.x + ' ' + coords.y}</div> -->
     <!-- <div class="color" style={`background: ${r > 0.5 ? "#ffda23" : "#2a58f0"}`}>{id}</div> -->
 </div>
