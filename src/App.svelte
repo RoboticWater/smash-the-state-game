@@ -1,269 +1,149 @@
 <script>
-    import { onMount } from 'svelte'
-	import { cardSelect } from './stores.js'
-	import Test from './Test.svelte';
-	import { quintOut, bounceOut } from 'svelte/easing';
-	import { crossfade } from 'svelte/transition';
-	import { flip } from 'svelte/animate';
+	import { Type, Suit } from './cardTypes.js';
+	import { generateDeck } from './deck.js';
+	import { selection } from './selection.js';
 
+	import Card from './Card.svelte';
 
-    var audioSources = [];
-    onMount(() => {
-        audioSources.push(new Audio('./card.wav'));
-        audioSources.push(new Audio('./card.wav'));
-        audioSources.push(new Audio('./card.wav'));
-        audioSources.push(new Audio('./card.wav'));
-    })
+	let deck = generateDeck(5);
 
-	function shuffle(a) {
-		var j, x, i;
-		for (i = a.length - 1; i > 0; i--) {
-			j = Math.floor(Math.random() * (i + 1));
-			x = a[i];
-			a[i] = a[j];
-			a[j] = x;
+	let grid = [...Array(5)].map(col => [...Array(10)].map(row => deck.pop()));
+
+	let serfTotal = 0;
+
+	window.addEventListener("touchstart", startMobileSelection, {passive: false});
+	// window.addEventListener("touchend", endSelection);
+
+	window.addEventListener("mousedown", startSelection);
+	// window.addEventListener("mouseup", endSelection);
+	// window.addEventListener("mouseleave", endSelection);
+
+	function startMobileSelection(e, card, row, col) {
+		e.preventDefault();		
+		continueMobileSelect(e);
+		// selection.addCard(card, row, col);
+		window.addEventListener("touchmove", continueMobileSelect);
+	}
+
+	function startSelection(e) {
+		e.preventDefault();
+		continueSelect(e);
+		// selection.addCard(card, row, col);
+		window.addEventListener("mousemove", continueSelect);
+	}
+
+	let curElement;
+	function continueMobileSelect(e) {
+		let {clientX, clientY} = e.targetTouches[0];
+		let element = document.elementFromPoint(clientX, clientY);
+		if (element && curElement !== element) {
+			curElement = element;
+			curElement.dispatchEvent(new CustomEvent('enter', {
+				bubbles: true,
+			}));
 		}
-		return a;
-	}
-	
-	const Deck = () => ([
-		...[...Array(2)].map(i => Card(1, Suit.CLUBS, Type.SERF)),
-		...[...Array(2)].map(i => Card(2, Suit.CLUBS, Type.SERF)),
-		...[...Array(1)].map(i => Card(1, Suit.CLUBS, Type.SERF)),
-		...[...Array(1)].map(i => Card(1, Suit.CLUBS, Type.SERF)),
-		...[...Array(2)].map(i => Card(1, Suit.CLUBS, Type.FACE)),
-		...[...Array(2)].map(i => Card(2, Suit.CLUBS, Type.FACE)),
-		...[...Array(2)].map(i => Card(3, Suit.CLUBS, Type.FACE)),
-		...[...Array(2)].map(i => Card(4, Suit.CLUBS, Type.FACE)),
-		...[...Array(2)].map(i => Card(1, Suit.HEARTS, Type.SERF)),
-		...[...Array(2)].map(i => Card(2, Suit.HEARTS, Type.SERF)),
-		...[...Array(1)].map(i => Card(1, Suit.HEARTS, Type.SERF)),
-		...[...Array(1)].map(i => Card(1, Suit.HEARTS, Type.SERF)),
-		...[...Array(2)].map(i => Card(1, Suit.HEARTS, Type.FACE)),
-		...[...Array(2)].map(i => Card(2, Suit.HEARTS, Type.FACE)),
-		...[...Array(2)].map(i => Card(3, Suit.HEARTS, Type.FACE)),
-		...[...Array(2)].map(i => Card(4, Suit.HEARTS, Type.FACE)),
-	]);
-
-	
-
-	const Suit = {
-		CLUBS: 'clubs',
-		HEARTS: 'hearts',
-		DIAMONDS: 'diamonds',
-		SPADES: 'clubs',
 	}
 
-	const Type = {
-		SERF: 'serf',
-		FACE: 'face'
-	}
-
-	let id = 0;
-	const Card = (rank, suit, type) => ({id: id++, rank, suit, type})
-
-	// const getCard = () => ({id: id++, suit: Math.random() > 0.5 ? 'h' : 'c', rank: Math.random() > 0.3 ? 'f' : 's', size: 1 + (Math.random() * 4) << 0});
-	let deck = shuffle([...Array(2)].reduce((acc, cur) => acc.concat(Deck()), []))
-	let grid = [
-		[...Array(10)].map(i => deck.pop()), 
-		[...Array(10)].map(i => deck.pop()), 
-		[...Array(10)].map(i => deck.pop()), 
-		[...Array(10)].map(i => deck.pop()), 
-		[...Array(10)].map(i => deck.pop()), 
-	]
-
-	let removed = [null, null, null, null, null]
-	let removedCount = [0, 0, 0, 0, 0]
-
-	const [send, receive] = crossfade({
-		fallback(node, params) {
-			const style = getComputedStyle(node);
-			const transform = style.transform === 'none' ? '' : style.transform;
-
-			return {
-				duration: 600,
-				easing: quintOut,
-				css: t => `
-					transform: ${transform} scale(${t});
-					opacity: ${t}
-				`
-			};
-		}
-	});
-
-	function playEffect() {
-		let audioSource = audioSources.find(as => !as.paused);
-		if (!audioSource) {
-			audioSources.push(new Audio('./card.wav'));
-			audioSource = audioSources[audioSources.length -1]
-		}
-		audioSource.volume = 0.5 *  Math.random() + 0.5;
-		audioSource.playbackRate = 0.5 *  Math.random() + 0.5;
-		audioSource.play();
-	}
-
-	function removeItem(col, id) {
-		let i = grid[col].findIndex(elem => elem.id === id);
-		// removed[col] = i;
-		grid[col].splice(i, 1);
-		let card = deck.pop()
-		if (card)
-			grid[col] = [card, ...grid[col]]
-		else
-			grid[col] = [{}, ...grid[col]]
-	}
-
-	function startSelect(e, col, row) {
-		let card = grid[col][row];
-		if (card.type === Type.FACE  && ($cardSelect.length === 0 || !validNextCard(col, row)))
+	function continueSelect(e) {
+		let {clientX, clientY} = e;
+		if (e.buttons === 0)
 			return;
-		console.log("START SELECT");
-		
-		playEffect()
-
-		cardSelect.addCard(Object.assign({col, row}, card))
-		// console.log($cardSelect);
-		// console.log($cardSelect.reduce((acc, cur) => acc + cur.rank + cur.suit + " ", ""));
-		window.addEventListener('mouseup', endSelect);
-		removed = [null, null, null, null, null]
-		removedCount = [0, 0, 0, 0, 0]
-		console.log($cardSelect);
+		let element  = document.elementFromPoint(clientX, clientY);
+		if (curElement !== element) {
+			curElement = element;
+			curElement.dispatchEvent(new CustomEvent('enter', {
+				bubbles: true,
+			}));
+		}
 	}
 
-	function continueSelect(e, col, row) {
-		console.log();
-		if ($cardSelect.length === 0 || !validNextCard(col, row))
-			return;
-		let card = grid[col][row];
-		let serfCount = $cardSelect.reduce((acc, cur) => acc + cur.type === Type.SERF ? 1 : 0, 0);
-		if (serfCount > 1 && card.type !== Type.SERF || serfCount === 1 && card.type === Type.SERF)
-			return;
-		console.log("CONTINUE SELECT");
-		
-		let i = $cardSelect.findIndex(c => c.id === card.id);
-		console.log(i >= 0 ? "	REMOVING CARD" : "	ADDING CARD");
-		if (i >= 0) {
-			cardSelect.removeCardIndex($cardSelect.length - 1);
-		} else {
-			if (card.suit !== $cardSelect[$cardSelect.length - 1].suit)
-				return;
-			playEffect()
-			cardSelect.addCard(Object.assign({col, row}, card))
-		}
-		// console.log($cardSelect);
-		// console.log($cardSelect.reduce((acc, cur) => acc + cur.rank + cur.suit + " ", ""));
+	function endSelection(e, cancel=false) {
+		e.preventDefault();
+		curElement = null;
+		selection.endSelection();
+		window.removeEventListener("mousemove", continueSelect);
+		window.removeEventListener("touchmove", continueMobileSelect);
+		serfTotal = 0;
 	}
 
-	function endSelect(e) {
-		window.removeEventListener('mouseup', endSelect);
-		console.log("ENDING SELECT");
-		// console.log($cardSelect);
-		console.log($cardSelect.reduce((acc, cur) => acc + cur.rank + cur.suit + " ", ""));
-		if ($cardSelect.length < 2) {
-			cardSelect.reset();
-			return;
+	function addCard(e, card, row, col) {
+		if (!$selection.find(item => item.id === card.id)) {
+			serfTotal += card.type === Type.SERF ? card.rank : -card.rank;
+			selection.addCard(card, row, col);
 		}
+	}
 
-		if ($cardSelect.every(card => card.type === Type.SERF)) {
-			let serfVal = $cardSelect.reduce((acc, cur) => acc + cur.rank, 0);
-			let card = $cardSelect[$cardSelect.length - 1];
-			grid[card.col][card.row].rank = serfVal;
-			for (let i = 0; i < $cardSelect.length - 1; i++) {
-				card = $cardSelect[i];
-				removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
-				removedCount[card.col]++;
+	$: getRank = card => {
+		if (card.type === Type.SERF) {
+			let i = $selection.findIndex(item => item.id === card.id)
+			if (i >= 0) {
+				let lastSerf;
+				$selection.forEach((c, index) => { if (c.type === Type.SERF) lastSerf = index;});
+				return i === lastSerf ? serfTotal : 0;
 			}
-			for (let i = 0; i < $cardSelect.length - 1; i++) {
-				card = $cardSelect[i];
-				removeItem(card.col, card.id);
-			}
-			cardSelect.reset();
-		} else {
-			let curSerf;
-			let serfs = []
-			let groups = $cardSelect.reduce((acc, cur) => {
-				if (cur.type === Type.SERF) {
-					curSerf = cur.id;
-					serfs.push(cur);
-					acc[curSerf] = []
-				} else {
-					acc[curSerf].push(cur)
-				}
-				return acc;
-			}, {})
-
-			let valid = true;
-			serfs.forEach(serf => {
-				if (!groups[serf.id].every(card => card.suit === serf.suit)) {
-					valid = false;
-				}
-			})
-
-			if (!valid) {
-				cardSelect.reset();
-				return;
-			}
-			
-			$cardSelect.forEach(card => {
-				removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
-				removedCount[card.col]++;
-			});
-			
-			$cardSelect.forEach(card => {
-				removeItem(card.col, card.id);
-			});
-			cardSelect.reset();
-		};
+		}
+		return card.rank;
 	}
 
-	function validNextCard(col, row) {
-		let prevCard = $cardSelect[$cardSelect.length - 1];
-		return Math.abs(prevCard.row - row) <= 1 && Math.abs(prevCard.col - col) <= 1;
-	}
+	$: allSerfs = $selection.every(card => card.type === Type.SERF);
 </script>
 
-<!-- on:click={e => removeItem(col, test.id)} -->
 <div class="app">
 	<div class="top-bar">
 	</div>
 	<div class="play-area">
 		{#each grid as column, col}
 			<div class="column">
-				{#each column as test, row (test.id)}
-					<div 
-						class="container" 
-						out:send="{{key: test.id}}"
-						class:hidden={row < 5}
-						animate:flip={{easing: bounceOut, duration: 300 + 200 * removedCount[col], delay: 30 * (removed[col] - row)}}
-					>
-						<Test selected={() => $cardSelect.some(card => card.id === test.id)} {...test} coords={{x: col, y: row}}/>
-						<div class="select-zone"
-							on:mousedown={e => startSelect(e, col, row)}
-							on:mouseenter={e => continueSelect(e, col, row)}
-						></div>
+				{#each column as card, row (card.id)}
+					<div class="card-container"
+						on:enter={e => addCard(e, card, row, col)}>
+						<Card rank={getRank(card)}
+							suit={card.suit}
+							type={card.type}
+							selected={$selection.find(item => item.id === card.id)}
+						/>
 					</div>
 				{/each}
 			</div>
 		{/each}
 	</div>
-	<div class="bottom-bar"></div>
+	<div class="bottom-bar">
+		{#if $selection.length > 1}
+			<button class="smash" on:click={endSelection} on:touchstart={endSelection}>
+				{#if allSerfs}
+				<img src="./handshake.svg" alt="">
+				{:else}
+				<img src="./fist.svg" alt="">
+				{/if}
+				<!-- https://thenounproject.com/search/?q=fist&i=577562 -->
+				<!-- https://thenounproject.com/term/handshake/29611/ -->
+			</button>
+			<button class="cancel" on:click={e => endSelection(e, true)} on:touchstart={e => endSelection(e, true)}>
+				<img src="./cancel.svg" alt="">
+				<!-- https://thenounproject.com/search/?q=cancel&i=1890784 -->
+			</button>
+		{/if}
+	</div>
 </div>
 
 <style>
 	.app {
+		background: #a0c9c9;
 		display: grid;
 		grid-template-rows: 1fr auto 1fr;
 		height: 100%;
-		/* background: #222; */
-		background: #acd0db;
+		width: 100%;
 	}
 	.play-area {
-		display: flex;
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+		grid-gap: 5px;
 		height: 500px;
-		width: 375px;
-		margin: 0 auto;
+		width: 100%;
+		max-width: 375px;
+		padding: 2.5px 5px;
 		overflow: hidden;
-		padding: 5px;
+		justify-self: center;
 	}
 	.column {
 		display: flex;
@@ -271,38 +151,36 @@
 		align-content: flex-end;
 		justify-content: flex-end;
 		height: 100%;
-		width: 75px;
+		/* overflow: hidden; */
+		/* width: 75px; */
 	}
-	.container {
-		display: inline-block;
-		position: relative;
+	.card-container {
+		width: 100%;
+		height: calc(20% - 5px);
+		padding: 2.5px 0;
+		flex-shrink: 0;
+		
 		user-select: none;
 		-moz-user-select: none;
 		-ms-user-select: none;
 		-webkit-user-select: none;
 	}
-	.container.hidden {
-		opacity: 0;
+	.bottom-bar {
+		display: flex;
+		max-height: 60px;
+		max-width: 375px;
+		justify-self: center;
+		width: 100%;
 	}
-	.select-zone {
-		background: #0f0;
-		opacity: 0;
-		width: 65px;
-		height: 95px;
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		border-radius: 50%;
-		z-index: 100;
+	.bottom-bar button {
+		flex: 1;
+		margin: 2.5px;
+        border-radius: 10px;
+		background: #333;
+		border: none;
 	}
-	.select-zone:hover {
-		background: #ff0;
-	}
-	.top-bar {
-		/* background: #222; */
-		/* position: fixed; */
-		/* z-index: 2000;
-		box-shadow: #2224  */
+	.bottom-bar img {
+		height: 40px;
+		margin-top: 3px;
 	}
 </style>

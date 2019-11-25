@@ -6,13 +6,35 @@
     export let rank;
     export let type;
     export let coords;
-    export let selected = false;
+    export let selected;
+
+    $: rows = [...Array(rank).keys()].reduce((acc, cur) => {
+        if (cur % Math.floor(Math.sqrt(rank)) === 0) {            
+            acc.push([cur])
+        } else {
+            acc[acc.length - 1].push(cur)
+        }
+        return acc;
+    }, []);
+    // [...Array(Math.floor(Math.sqrt(rank)))].map(row => [...Array(Math.floor(rank / Math.floor(Math.sqrt(rank))))])
 </script>
 
 <div class="test" class:selected={selected()} style={`background: ${type === 'serf' ? suit === 'hearts' ? "#f13535" : "#404040" : '#fff'}`}>
-    <div class="color" style={`background: ${suit === 'hearts' ? "#f13535" : "#404040"}`}>{rank}</div>
     <!-- <div>{coords.x + ' ' + coords.y}</div> -->
     <!-- <div class="color" style={`background: ${r > 0.5 ? "#ffda23" : "#2a58f0"}`}>{id}</div> -->
+    {#if type === 'serf'}
+        <div class="serf-container">
+        {#each rows as row, i}
+            <div class="serf-row">
+                {#each row as serf, j}
+                    <div class="serf"></div>
+                {/each}
+            </div>
+        {/each}
+        </div>
+    {:else}
+    <div class="color" style={`background: ${suit === 'hearts' ? "#f13535" : "#404040"}`}>{rank}</div>
+    {/if}
 </div>
 
 <style>
@@ -40,5 +62,23 @@
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
         padding: 3px;
+    }
+    .serf-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+    }
+    .serf-row {
+        display: flex;
+    }
+    .serf {
+        width: 10px;
+        height: 10px;
+        border-radius: 100%;
+        background: #fff;
+        margin: 2px;
     }
 </style>
