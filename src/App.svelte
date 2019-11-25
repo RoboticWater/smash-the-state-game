@@ -105,6 +105,7 @@
 			|| serfTotal - faceTotal + (card.type === Type.SERF ? card.rank : -card.rank) < 0)
 			return;
 			curSuit = card.suit;
+		window.navigator.vibrate(200);
 		if (card.type === Type.SERF)
 			serfTotal += card.rank;
 		else 
