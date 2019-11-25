@@ -11,6 +11,7 @@
 	let grid = [...Array(5)].map(col => [...Array(10)].map(row => deck.pop()));
 
 	let serfTotal = 0;
+	let faceTotal = 0;
 
 	window.addEventListener("touchstart", startMobileSelection, {passive: false});
 	// window.addEventListener("touchend", endSelection);
@@ -18,6 +19,16 @@
 	window.addEventListener("mousedown", startSelection);
 	// window.addEventListener("mouseup", endSelection);
 	// window.addEventListener("mouseleave", endSelection);
+
+	let removed = [null, null, null, null, null]
+	let removedCount = [0, 0, 0, 0, 0]
+
+	function removeCard(col, id) {
+		let i = grid[col].findIndex(card => card.id === id);
+		grid[col].splice(i, 1);
+		let card = deck.pop()
+		grid[col] = card ? [card, ...grid[col]] : [{}, ...grid[col]]
+	}
 
 	function startMobileSelection(e, card, row, col) {
 		e.preventDefault();		
@@ -61,18 +72,45 @@
 	function endSelection(e, cancel=false) {
 		e.preventDefault();
 		curElement = null;
+		if (!cancel && $selection.length > 1) {
+			if (allSerfs) {
+				let card = $selection[$selection.length - 1];
+				grid[card.col][card.row].rank = serfTotal;
+				for (let i = 0; i < $selection.length - 1; i++) {
+					card = $selection[i];
+					removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
+					removedCount[card.col]++;
+				}
+				for (let i = 0; i < $selection.length - 1; i++) {
+					card = $selection[i];
+					removeCard(card.col, card.id);
+				}
+			} else {
+
+			}
+		}
 		selection.endSelection();
 		window.removeEventListener("mousemove", continueSelect);
 		window.removeEventListener("touchmove", continueMobileSelect);
 		serfTotal = 0;
+		faceTotal = 0;
+		curSuit = null;
 	}
 
+	let curSuit;
 	function addCard(e, card, row, col) {
-		if (!$selection.find(item => item.id === card.id) && validNextCard(row, col)) {
-			serfTotal += card.type === Type.SERF ? card.rank : -card.rank;
-			selection.addCard(card, row, col);
-			playEffect();
-		}
+		if ($selection.find(item => item.id === card.id)
+			|| !validNextCard(row, col)
+			|| (curSuit && curSuit !== card.suit)
+			|| serfTotal - faceTotal + (card.type === Type.SERF ? card.rank : -card.rank) < 0)
+			return;
+			curSuit = card.suit;
+		if (card.type === Type.SERF)
+			serfTotal += card.rank;
+		else 
+			faceTotal += card.rank;
+		selection.addCard(card, row, col);
+		playEffect();
 	}
 
 	function validNextCard(row, col) {
@@ -110,6 +148,7 @@
 							suit={card.suit}
 							type={card.type}
 							selected={$selection.find(item => item.id === card.id)}
+							faceTotal={faceTotal}
 						/>
 					</div>
 				{/each}
@@ -117,7 +156,7 @@
 		{/each}
 	</div>
 	<div class="bottom-bar">
-		{#if $selection.length > 1}
+		{#if $selection.length}
 			<button class="smash" on:click={endSelection} on:touchstart={endSelection}>
 				{#if allSerfs}
 				<img src="./handshake.svg" alt="">

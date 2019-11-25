@@ -5,6 +5,7 @@
     export let suit;
     export let type;
     export let selected;
+    export let faceTotal = 0;
     
     $: rows = [...Array(rank >= 0 ? rank : 0).keys()].reduce((acc, cur) => {
         if (cur % Math.floor(Math.sqrt(rank)) === 0) {            
@@ -16,20 +17,23 @@
     }, []);
 </script>
 
-<div class="card" class:selected={selected} class:serf={type === Type.SERF}>
+<div class="card" class:selected={selected} class:serf={type === Type.SERF} class:red={suit === Suit.HEARTS}>
     {#if type === Type.SERF}
         <div class="serf-container">
         {#each rows as row, i}
             <div class="serf-row">
                 {#each row as serf, j}
-                    <div class="dot"></div>
+                    <div class="dot" class:dead={selected && serf < faceTotal}></div>
                 {/each}
             </div>
         {/each}
         </div>
     {/if}
     {#if type === Type.FACE}
-        <div>{rank}</div>
+        <div class="face">
+            <div class="face-display"></div>
+            <div class="face-rank">{rank}</div>
+        </div>
     {/if}
 </div>
 
@@ -46,9 +50,13 @@
         /* box-shadow: 5px 5px 5px #2223; */
         transition: box-shadow 0.25s ease, transform 0.25s ease;
         cursor: pointer;
+        position: relative;
     }
     .card.serf {
         background: #333;
+    }
+    .card.serf.red {
+        background: #f13535;
     }
     .card.selected {
         transform: translate(-5px, -5px);
@@ -72,5 +80,38 @@
         border-radius: 100%;
         background: #fff;
         margin: 2px;
+        position: relative;
+    }
+    .dot.dead:after {
+        content: '';
+        width: 150%;
+        height: 3px;
+        border-radius: 1.5px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+        background: #333;
+    }
+    .red .dot.dead:after {
+        background: #f13535;
+    }
+    .face {
+        display: grid;
+        grid-template-rows: auto 35%;
+        height: 100%;
+    }
+    .face-display {
+    }
+    .face-rank {
+        /* height: calc(100% - 10px);
+        width: calc(100% - 10px); */
+        background: #333;
+        color: #fff;
+        padding: 5px 8px;
+        text-align: right;
+    }
+    .red .face-rank {
+        background: #f13535;
     }
 </style>
