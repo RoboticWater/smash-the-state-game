@@ -2,6 +2,7 @@
 	import { Type, Suit } from './cardTypes.js';
 	import { generateDeck } from './deck.js';
 	import { selection } from './selection.js';
+	import { playEffect } from './audioPlayer.js';
 
 	import Card from './Card.svelte';
 
@@ -70,6 +71,7 @@
 		if (!$selection.find(item => item.id === card.id)) {
 			serfTotal += card.type === Type.SERF ? card.rank : -card.rank;
 			selection.addCard(card, row, col);
+			playEffect();
 		}
 	}
 
