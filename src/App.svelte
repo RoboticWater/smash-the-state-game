@@ -68,11 +68,18 @@
 	}
 
 	function addCard(e, card, row, col) {
-		if (!$selection.find(item => item.id === card.id)) {
+		if (!$selection.find(item => item.id === card.id) && validNextCard(row, col)) {
 			serfTotal += card.type === Type.SERF ? card.rank : -card.rank;
 			selection.addCard(card, row, col);
 			playEffect();
 		}
+	}
+
+	function validNextCard(row, col) {
+		if (!$selection.length)
+			return true;
+		let prevCard = $selection[$selection.length - 1];
+		return Math.abs(prevCard.row - row) <= 1 && Math.abs(prevCard.col - col) <= 1;
 	}
 
 	$: getRank = card => {
