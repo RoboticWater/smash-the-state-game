@@ -214,13 +214,15 @@
 						out:send="{{key: card.id}}"
 						on:enter={e => addCard(e, card, row, col)}
 						animate:flip={{easing: bounceOut, duration: 500, delay: 50}}>
-						<Card rank={getRank(card)}
-							suit={card.suit}
-							type={card.type}
-							curLife={card.curLife}
-							selected={$selection.find(item => item.id === card.id)}
-							faceTotal={faceTotal}
-						/>
+						{#if card !== {}} 
+							<Card rank={getRank(card)}
+								suit={card.suit}
+								type={card.type}
+								curLife={card.curLife}
+								selected={$selection.find(item => item.id === card.id)}
+								faceTotal={faceTotal}
+							/>
+						{/if}
 					</div>
 				{/each}
 			</div>
