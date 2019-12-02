@@ -1,10 +1,30 @@
 <script>
+	import { quintOut, bounceOut } from 'svelte/easing';
+	import { crossfade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+
 	import { Type, Suit } from './cardTypes.js';
 	import { generateDeck } from './deck.js';
 	import { selection } from './selection.js';
 	import { playEffect } from './audioPlayer.js';
+    import { tick, onMount } from 'svelte';
 
 	import Card from './Card.svelte';
+
+	const [send, receive] = crossfade({
+		fallback(node, params) {
+			const style = getComputedStyle(node);
+			const transform = style.transform === 'none' ? '' : style.transform;
+			return {
+				duration: 600,
+				easing: quintOut,
+				css: t => `
+					transform: ${transform} scale(${t});
+					opacity: ${t}
+				`
+			};
+		}
+	});
 
 	let deck = generateDeck(5);
 
@@ -23,8 +43,18 @@
 	let removed = [null, null, null, null, null]
 	let removedCount = [0, 0, 0, 0, 0]
 
+	let serfDeaths = 0;
+	let faceDeaths = 0;
+
 	function removeCard(col, id) {
 		let i = grid[col].findIndex(card => card.id === id);
+		if (i < 0)
+			return;
+		if (grid[col][i].type === Type.SERF) {
+			serfDeaths++;
+		} else {
+			faceDeaths++;
+		}
 		grid[col].splice(i, 1);
 		let card = deck.pop()
 		grid[col] = card ? [card, ...grid[col]] : [{}, ...grid[col]]
@@ -72,10 +102,16 @@
 	function endSelection(e, cancel=false) {
 		e.preventDefault();
 		curElement = null;
+
+		removed = [null, null, null, null, null]
+		removedCount = [0, 0, 0, 0, 0]
+
 		if (!cancel && $selection.length > 1) {
 			if (allSerfs) {
 				let card = $selection[$selection.length - 1];
 				grid[card.col][card.row].rank = serfTotal;
+				grid[card.col][card.row].curLife = serfTotal * 100;
+				grid[card.col][card.row].life = serfTotal * 100;
 				for (let i = 0; i < $selection.length - 1; i++) {
 					card = $selection[i];
 					removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
@@ -85,8 +121,17 @@
 					card = $selection[i];
 					removeCard(card.col, card.id);
 				}
-			} else {
-
+			} else if (faceTotal <= serfTotal) {
+				let card = $selection[$selection.length - 1];
+				for (let i = 0; i < $selection.length; i++) {
+					card = $selection[i];
+					removed[card.col] = removed[card.col] < card.row ? card.row : removed[card.col];
+					removedCount[card.col]++;
+				}
+				for (let i = 0; i < $selection.length; i++) {
+					card = $selection[i];
+					removeCard(card.col, card.id);
+				}
 			}
 		}
 		selection.endSelection();
@@ -102,14 +147,14 @@
 		if ($selection.find(item => item.id === card.id)
 			|| !validNextCard(row, col)
 			|| (curSuit && curSuit !== card.suit)
-			|| serfTotal - faceTotal + (card.type === Type.SERF ? card.rank : -card.rank) < 0)
+			|| serfTotal - faceTotal + (card.type === Type.SERF ? card.rank : -1) < 0)
 			return;
 			curSuit = card.suit;
-		window.navigator.vibrate(100);
+		window.navigator.vibrate(50);
 		if (card.type === Type.SERF)
 			serfTotal += card.rank;
 		else 
-			faceTotal += card.rank;
+			faceTotal += 1;
 		selection.addCard(card, row, col);
 		playEffect();
 	}
@@ -134,6 +179,28 @@
 	}
 
 	$: allSerfs = $selection.every(card => card.type === Type.SERF);
+
+
+	onMount(() => {
+		const interval = setInterval(() => {
+			for (let x = 0; x < grid.length; x++) {
+				for (let y = 0; y < grid[0].length; y++) {
+					if (grid[x][y].type === Type.SERF && y > 4) {
+						grid[x][y].curLife -= 3;
+					}
+					if (grid[x][y].curLife < 0) {
+						removed[x] = removed[x] < y ? y : removed[x];
+						removedCount[x]++;
+						removeCard(x, grid[x][y].id);
+					}
+				}
+			}
+		}, 1000);
+
+		return () => {
+			clearInterval(interval);
+		};
+	});
 </script>
 
 <div class="app">
@@ -144,10 +211,13 @@
 			<div class="column">
 				{#each column as card, row (card.id)}
 					<div class="card-container"
-						on:enter={e => addCard(e, card, row, col)}>
+						out:send="{{key: card.id}}"
+						on:enter={e => addCard(e, card, row, col)}
+						animate:flip={{easing: bounceOut, duration: 500, delay: 50}}>
 						<Card rank={getRank(card)}
 							suit={card.suit}
 							type={card.type}
+							curLife={card.curLife}
 							selected={$selection.find(item => item.id === card.id)}
 							faceTotal={faceTotal}
 						/>

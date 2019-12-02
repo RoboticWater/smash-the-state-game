@@ -1,7 +1,7 @@
 import { Type, Suit } from './cardTypes.js';
 
 let id = 0;
-const Card = (rank, suit, type) => ({ id: id++, rank, suit, type })
+const Card = (rank, suit, type) => ({ id: id++, rank, suit, type, life: 100 * rank, curLife: 100 * rank })
 
 export const Deck = () => ([
     ...[...Array(4)].map(i => Card(1, Suit.CLUBS, Type.SERF)),

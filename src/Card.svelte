@@ -1,4 +1,5 @@
 <script>
+    import { tick, onMount } from 'svelte';
     import { Type, Suit } from './cardTypes.js';
 
     export let rank;
@@ -6,6 +7,9 @@
     export let type;
     export let selected;
     export let faceTotal = 0;
+    export let life = 100;
+    export let curLife = 100;
+    export let lifeTick = 1000;
     
     $: rows = [...Array(rank >= 0 ? rank : 0).keys()].reduce((acc, cur) => {
         if (cur % Math.floor(Math.sqrt(rank)) === 0) {            
@@ -17,7 +21,11 @@
     }, []);
 </script>
 
-<div class="card" class:selected={selected} class:serf={type === Type.SERF} class:red={suit === Suit.HEARTS}>
+<div class="card"
+    class:selected={selected}
+    class:serf={type === Type.SERF}
+    class:red={suit === Suit.HEARTS}
+    style={`opacity: ${curLife / life}; transition: opacity ${lifeTick/2}ms linear;`}>
     {#if type === Type.SERF}
         <div class="serf-container">
         {#each rows as row, i}
@@ -32,7 +40,7 @@
     {#if type === Type.FACE}
         <div class="face">
             <div class="face-display"></div>
-            <div class="face-rank">{rank}</div>
+            <div class="face-rank"></div>
         </div>
     {/if}
 </div>
