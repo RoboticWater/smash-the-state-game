@@ -1,11 +1,11 @@
 export const Suit = {
-    CLUBS: 'clubs',
-    HEARTS: 'hearts',
-    DIAMONDS: 'diamonds',
-    SPADES: 'clubs',
+    CLUBS: 'CLUBS',
+    HEARTS: 'HEARTS',
+    DIAMONDS: 'DIAMONDS',
+    SPADES: 'SPADES',
 }
 
 export const Type = {
-    SERF: 'serf',
-    FACE: 'face'
+    SERF: 'SERF',
+    FACE: 'FACE'
 }
