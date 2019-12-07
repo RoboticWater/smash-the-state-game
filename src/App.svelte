@@ -176,6 +176,8 @@
 					card = $selection[i];
 					remove(card.col, card.id);
 				}
+				serfsSacrificed++;
+				facesSmashed += faceTotal;
 			}
 		}
 		selection.endSelection()

@@ -1,6 +1,6 @@
 <script>
 	import { Type, Suit } from './cardTypes.js';
-	
+
 	export let selected;
 	export let id;
 	export let life;
@@ -59,7 +59,8 @@
 	class:selected={selected}
     class:serf={type === Type.SERF}
     class:red={suit === Suit.DIAMONDS}>
-	<img src={images[suit][type][rank - 1]} alt="">
+	{#if rank < 11}<img src={images[suit][type][rank - 1]} alt="">
+	{:else} <div class="rank">{rank}</div>{/if}
 </div>
 
 <style>
@@ -79,5 +80,11 @@
 	.serf.red {background: #EE2331}
 	img {
 		width: 100%;
+	}
+	.rank {
+		color: #fff;
+		text-align: center;
+		margin-top: 18px;
+		font-size: 40px;
 	}
 </style>
