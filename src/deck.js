@@ -1,21 +1,15 @@
 import { Type, Suit } from './cardTypes.js';
 
 let id = 0;
-const Card = (rank, suit, type) => ({ id: id++, rank, suit, type, life: 100 * rank, lifeTotal: 100 * rank })
+const Card = (rank, suit, type) => ({ id: id++, rank: (type === Type.FACE ? (Math.random() * 4 << 0) + 1 : rank), suit, type, life: 75 + 25 * rank, lifeTotal: 75 + 25 * rank })
 
 export const Deck = () => ([
-    ...[...Array(4)].map(i => Card(1, Suit.SPADES, Type.SERF)),
+    ...[...Array(5)].map(i => Card(1, Suit.SPADES, Type.SERF)),
     ...[...Array(2)].map(i => Card(2, Suit.SPADES, Type.SERF)),
-    ...[...Array(2)].map(i => Card(1, Suit.SPADES, Type.FACE)),
-    ...[...Array(2)].map(i => Card(2, Suit.SPADES, Type.FACE)),
-    ...[...Array(2)].map(i => Card(3, Suit.SPADES, Type.FACE)),
-    ...[...Array(2)].map(i => Card(4, Suit.SPADES, Type.FACE)),
-    ...[...Array(4)].map(i => Card(1, Suit.DIAMONDS, Type.SERF)),
+    ...[...Array(7)].map(i => Card(1, Suit.SPADES, Type.FACE)),
+    ...[...Array(5)].map(i => Card(1, Suit.DIAMONDS, Type.SERF)),
     ...[...Array(2)].map(i => Card(2, Suit.DIAMONDS, Type.SERF)),
-    ...[...Array(2)].map(i => Card(1, Suit.DIAMONDS, Type.FACE)),
-    ...[...Array(2)].map(i => Card(2, Suit.DIAMONDS, Type.FACE)),
-    ...[...Array(2)].map(i => Card(3, Suit.DIAMONDS, Type.FACE)),
-    ...[...Array(2)].map(i => Card(4, Suit.DIAMONDS, Type.FACE)),
+    ...[...Array(7)].map(i => Card(1, Suit.DIAMONDS, Type.FACE)),
 ]);
 
 // export const Deck = () => ([

@@ -1,0 +1,5 @@
+https://smash-the-state.herokuapp.com/
+Welcome to Smash the State!
+1. Swipe through number cards to band them together.
+2. Swipe from number cards through face cards to smash them.
+3. Number cards can destroy up to the number of face cards displayed on them. or something. that one's a bit rough.

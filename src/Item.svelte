@@ -1,6 +1,6 @@
 <script>
 	import { Type, Suit } from './cardTypes.js';
-
+	
 	export let selected;
 	export let id;
 	export let life;

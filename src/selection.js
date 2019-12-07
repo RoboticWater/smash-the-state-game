@@ -22,6 +22,7 @@ function createCardSelect() {
                 return state;
             }
         }),
+        removeCard: () => update(state => state.slice(0, -1)),
         endSelection: () => set([])
     };
 }

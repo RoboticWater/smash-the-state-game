@@ -17,6 +17,20 @@
 		let card = deck.pop()
 		return card ? card : {}
 	}).reverse(), id: 'g' + gridid++}));
+	// let grid = [
+	// 	{id:'g1',items:[
+	// 		{},
+	// 		{},
+	// 		{},
+	// 		{},
+	// 		{ id: 0, rank: 1, suit: Suit.SPADES, type: Type.SERF, life: 75 + 25, lifeTotal: 75 + 25 },
+	// 		{ id: 1, rank: 4, suit: Suit.SPADES, type: Type.FACE, life: 75 + 25, lifeTotal: 75 + 25 },
+	// 		{ id: 2, rank: 4, suit: Suit.SPADES, type: Type.FACE, life: 75 + 25, lifeTotal: 75 + 25 },
+	// 		{ id: 3, rank: 4, suit: Suit.SPADES, type: Type.FACE, life: 75 + 25, lifeTotal: 75 + 25 },
+	// 		{ id: 4, rank: 4, suit: Suit.SPADES, type: Type.FACE, life: 75 + 25, lifeTotal: 75 + 25 },
+	// 		{ id: 5, rank: 4, suit: Suit.SPADES, type: Type.FACE, life: 75 + 25, lifeTotal: 75 + 25 },
+	// 	]}
+	// ]
 	let gameOverState = 0;
 	document.cookie = "smashed=0;"
 	
@@ -59,6 +73,14 @@
 	});
 	
 	onMount(() => {
+    	let music = document.createElement("audio");
+		music.src = "./4393-sonatina-in-c-minor-by-kevin-macleod.mp3";
+		music.volume = 0.5;
+		music.autoplay = true;
+		music.loop = true;
+		music.setAttribute("controls", "none");
+		music.style.display = "none";
+    	document.body.appendChild(music);
 		const interval = setInterval(() => {
 			let movesRemaining = false;
 			let anyFaces = false;
@@ -74,13 +96,13 @@
 							remove(x, grid[x].items[y].id)
 					}
 				})
-			})
-			console.log(anyFaces);
-			
+			})			
 			if (!movesRemaining) {
-				gameOverState++;
 				clearInterval(interval);
-				gameOverSequence(anyFaces);
+				setTimeout(() => {
+					gameOverState++;
+					gameOverSequence(anyFaces);
+				}, 1000);
 			}
 			removeEmptyColumns();
 		}, 1000);
@@ -142,8 +164,8 @@
 			if (allSerfs) {
 				let card = $selection[$selection.length - 1];
 				grid[card.col].items[card.row].rank = serfTotal;
-				grid[card.col].items[card.row].curLife = serfTotal * 100;
-				grid[card.col].items[card.row].life = serfTotal * 100;
+				grid[card.col].items[card.row].curLife = 75 + 25 * serfTotal;
+				grid[card.col].items[card.row].life = 75 + 25 * serfTotal;
 				for (let i = 0; i < $selection.length - 1; i++) {
 					card = $selection[i];
 					remove(card.col, card.id);
@@ -181,7 +203,17 @@
 	}
 
 	function addCard(col, row, card) {
-		if ($selection.find(item => item.id === card.id)
+		let index = $selection.findIndex(item => item.id === card.id);
+		if (index >= 0 && index === $selection.length - 2) {
+			let last = $selection[$selection.length - 1];
+			selection.removeCard();
+			if (last.type === Type.SERF)
+				serfTotal -= last.rank;
+			else 
+				faceTotal -= 1;
+			return;
+		}
+		if (index >= 0
 			|| !validNextCard(col, row)
 			|| (curSuit && curSuit !== card.suit)
 			|| serfTotal - faceTotal + (card.type === Type.SERF ? card.rank : -1) < 0)
@@ -205,49 +237,32 @@
 		if (card.type === Type.FACE || !card.suit) {
 			return false;
 		}
-		let validCard = false;
-		for (let x = 0; x < 3; x++) {
-			for (let y = 0; y < 3; y++) {
+		for (let x = -1; x < 2; x++) {
+			for (let y = -1; y < 2; y++) {
 				if (x === 0 && y === 0)
 					continue;
-				if (col + x < 0 || col + x >= grid.length || row + y < 0 || row + y >= grid[col].items.length)
+				if (col + x < 0 || col + x >= grid.length || row + y < 0 || row + y >= 10)
 					continue;			
 				let other = grid[col + x].items[row + y];
 				if (card.suit === other.suit) {
-					validCard = true;
-					break;
+					return true
 				}
 			}
-			if (validCard)
-				break;
 		}
-		// .forEach(x => {
-		// 	[-1, 1].forEach(y => {
-		// 		if (col + x < 0 || col + x >= grid.length || row + y < 0 || row + y >= grid[col].items.length)
-		// 			return true;				
-		// 		let other = grid[col + x].items[row + y];
-		// 		if (card.suit === other.suit) {
-		// 			validCard = true;
-		// 			return;
-		// 		}
-		// 	})
-		// 	if (validCard)
-		// 		return;
-		// })
-		return validCard;
+		return false;
 	}
 	function gameOverSequence(failure) {
 		setTimeout(() => {
 			gameOverState++
-		}, 500)
+		}, 1000)
 		setTimeout(() => {
-			console.log(failure);
-			
 			if (!failure) {
 				document.cookie = "smashed=" + (++smashed) + ";" 
 			}
-			console.log(document.cookie);
-		}, 1000)
+		}, 2500)
+		setTimeout(() => {
+			gameOverState++
+		}, failure ? 2500 : 4000);
 	}
 
 	let smashed = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)smashed\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
@@ -256,6 +271,7 @@
 	
 </script>
 
+<!-- <audio src="./4393-sonatina-in-c-minor-by-kevin-macleod.mp3" autoplay loop style="display:none;"></audio> -->
 <div class="main">
 	<div class="top">
 		<div>Faces Smashed: <span class="states">{facesSmashed.toString().padStart(5, '0')}</span></div>
@@ -286,8 +302,16 @@
 </div>
 <div class="game-over" class:on={gameOverState > 0}>
 	<div class="content">
-		<div class="smashed">States Smashed: <span class="states">{smashed.toString().padStart(5, '0')}</span></div>
+		<div class="smashed" class:on={gameOverState > 1}>States Smashed: <span class="states">{smashed.toString().padStart(5, '0')}</span></div>
+		<button class="reload" on:click={() => window.location.reload()} on:touchstart={() => window.location.reload()} class:on={gameOverState > 2}>Another Revolution!</button>
+		<div style="margin-top: 250px;">Credits:</div>
+		<div class="credits" style="font-weight: 300;">
+			"Sonatina in C Minor" by Kevin MacLeod
+		</div>
 	</div>
+</div>
+<div class="title-card">
+
 </div>
 
 <style>
@@ -302,9 +326,6 @@
 		grid-template-areas: ". top ." ". board ." "bottom bottom bottom";
 		grid-template-rows: 1fr auto 1fr;
 		height: 100%;
-		/* background: #8ec0ab; */
-		/* background: #a1bfdb; */
-		/* background: #97beae; */
 		background: #d6d6d6;
 	}
 	.container {
@@ -362,16 +383,26 @@
 		pointer-events: none;
 		color: #fff;
 	}
-	.on {
-		pointer-events: all;
-		opacity: 1;
-	}
 	.content {
 		text-transform: uppercase;
 		width: 200px;
-		margin: 50px auto;
+		margin: 200px auto 0;
+	}
+	.smashed {
+		opacity: 0;
 	}
 	.states {
 		font-weight: 300;
+	}
+	.reload {
+		margin-top: 10px;
+		width: 100%;
+		font-weight: 700;
+		text-transform: uppercase;
+		opacity: 0;
+	}
+	.on {
+		pointer-events: all;
+		opacity: 1;
 	}
 </style>
