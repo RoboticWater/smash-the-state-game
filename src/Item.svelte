@@ -2,8 +2,6 @@
 	import { Type, Suit } from './cardTypes.js';
 
 	export let selected;
-	export let row;
-	export let col;
 	export let id;
 	export let life;
 	export let type;
@@ -13,12 +11,44 @@
 	
 	const images = {
 		SPADES: {
-			FACE: ['./images/cards/spades/jack-01.png', './images/cards/spades/queen-01.png', './images/cards/spades/king-01.png', './images/cards/spades/ace-01.png'],
-			SERF: [],
+			FACE: [
+				'./images/cards/spades/jack-01.png',
+				'./images/cards/spades/queen-01.png',
+				'./images/cards/spades/king-01.png',
+				'./images/cards/spades/ace-01.png'
+			],
+			SERF: [
+				'./images/cards/spades/1-01.png',
+				'./images/cards/spades/2-01.png',
+				'./images/cards/spades/3-01.png',
+				'./images/cards/spades/4-01.png',
+				'./images/cards/spades/5-01.png',
+				'./images/cards/spades/6-01.png',
+				'./images/cards/spades/7-01.png',
+				'./images/cards/spades/8-01.png',
+				'./images/cards/spades/9-01.png',
+				'./images/cards/spades/10-01.png',
+			],
 		},
 		DIAMONDS: {
-			FACE: ['./images/cards/diamonds/jack-01.png', './images/cards/diamonds/queen-01.png', './images/cards/diamonds/king-01.png', './images/cards/diamonds/ace-01.png'],
-			SERF: [],
+			FACE: [
+				'./images/cards/diamonds/jack-01.png',
+				'./images/cards/diamonds/queen-01.png',
+				'./images/cards/diamonds/king-01.png',
+				'./images/cards/diamonds/ace-01.png'
+			],
+			SERF: [
+				'./images/cards/diamonds/1-01.png',
+				'./images/cards/diamonds/2-01.png',
+				'./images/cards/diamonds/3-01.png',
+				'./images/cards/diamonds/4-01.png',
+				'./images/cards/diamonds/5-01.png',
+				'./images/cards/diamonds/6-01.png',
+				'./images/cards/diamonds/7-01.png',
+				'./images/cards/diamonds/8-01.png',
+				'./images/cards/diamonds/9-01.png',
+				'./images/cards/diamonds/10-01.png',
+			],
 		}
 	}
 </script>
@@ -29,11 +59,6 @@
 	class:selected={selected}
     class:serf={type === Type.SERF}
     class:red={suit === Suit.DIAMONDS}>
-	<!-- {row + "," + col}
-	<br>
-	{id}
-	<br>
-	{life} -->
 	<img src={images[suit][type][rank - 1]} alt="">
 </div>
 

@@ -15,7 +15,13 @@ function createCardSelect() {
 
     return {
         subscribe,
-        addCard: (card, row, col) => update(state => [...state, Object.assign({ row, col }, card)]),
+        addCard: (col, row, card) => update(state => {
+            if (!state.find(c => c.id === card.id)) {
+                return [...state, Object.assign({ col, row }, card)]
+            } else {
+                return state;
+            }
+        }),
         endSelection: () => set([])
     };
 }

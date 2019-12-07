@@ -1,13 +1,8 @@
 var sounds = [new sound('./card1.wav'), new sound('./card2.wav'), new sound('./card3.wav')];
-let prevSound = 0;
+let curSound = 0;
 export function playEffect() {
-    let index = (Math.random() * sounds.length) << 0;
-    while (index === prevSound) {
-        index = (Math.random() * sounds.length) << 0
-    }
-    prevSound = index;
-    let sound = sounds[index];
-    sound.play();
+    sounds[curSound].play();
+    curSound = (curSound + 1) % sounds.length
 }
 
 function sound(src) {
