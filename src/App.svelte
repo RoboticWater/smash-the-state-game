@@ -331,6 +331,20 @@
 	}
 	.top {
 		grid-area: top;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		/* align-items: center; */
+		width: 350px;
+		justify-self: center;
+		font-size: 20px;
+		text-transform: uppercase;
+	}
+	.top > div {
+		width: 100%;
+	}
+	.top > div span {
+		float: right;
 	}
 	.bottom {
 		grid-area: bottom;
